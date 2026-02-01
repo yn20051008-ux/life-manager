@@ -833,7 +833,6 @@
       <input type="password" class="auth-input" id="authPassword" placeholder="パスワード" required>
       <div class="auth-error" id="authError"></div>
       <button type="submit" class="auth-btn" id="authSubmit">ログイン</button>
-      <button type="button" class="auth-btn secondary" id="demoBtn">デモで試す</button>
       <p class="auth-toggle" id="authToggle">アカウントを作成</p>
     </form>
   </div>
@@ -1022,14 +1021,14 @@
 
   <script type="module">
     // Firebase SDK
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js';
     import { 
       getAuth, 
       signInWithEmailAndPassword, 
       createUserWithEmailAndPassword,
       onAuthStateChanged,
       signOut
-    } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js';
     import { 
       getFirestore, 
       collection, 
@@ -1042,16 +1041,16 @@
       query,
       orderBy,
       onSnapshot
-    } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js';
 
-    // Firebase Configuration - ユーザーが自分の設定に置き換える
+    // Firebase Configuration
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyCogjcdvhFP31eRbGh6zDQdhc-3nUqSjGE",
+      authDomain: "life-manager-a36bf.firebaseapp.com",
+      projectId: "life-manager-a36bf",
+      storageBucket: "life-manager-a36bf.firebasestorage.app",
+      messagingSenderId: "56494550100",
+      appId: "1:56494550100:web:b2e87f89edf256ca9b91c1"
     };
 
     // Initialize Firebase
@@ -1064,14 +1063,10 @@
     let tasks = [];
     let history = [];
 
-    // Check if Firebase is configured
-    const isFirebaseConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
-
-    if (isFirebaseConfigured) {
-      app = initializeApp(firebaseConfig);
-      auth = getAuth(app);
-      db = getFirestore(app);
-    }
+    // Initialize Firebase
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
 
     // DOM Elements
     const authScreen = document.getElementById('authScreen');
@@ -1086,32 +1081,20 @@
 
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
-      if (isFirebaseConfigured) {
-        onAuthStateChanged(auth, (user) => {
-          if (user) {
-            currentUser = user;
-            showApp();
-            loadData();
-          } else {
-            currentUser = null;
-            showAuth();
-          }
-        });
-      } else {
-        // Demo mode without Firebase
-        showDemoMode();
-      }
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          currentUser = user;
+          showApp();
+          loadData();
+        } else {
+          currentUser = null;
+          showAuth();
+        }
+      });
 
       setupEventListeners();
       checkNotificationPermission();
     });
-
-    function showDemoMode() {
-      authScreen.classList.add('hidden');
-      appEl.classList.add('visible');
-      document.getElementById('userEmail').textContent = 'デモモード';
-      loadSampleData();
-    }
 
     function showAuth() {
       authScreen.classList.remove('hidden');
@@ -1128,7 +1111,6 @@
       // Auth
       authForm.addEventListener('submit', handleAuth);
       authToggle.addEventListener('click', toggleAuthMode);
-      document.getElementById('demoBtn').addEventListener('click', showDemoMode);
       document.getElementById('logoutBtn').addEventListener('click', handleLogout);
 
       // Tabs
@@ -1176,11 +1158,6 @@
       const password = document.getElementById('authPassword').value;
       authError.textContent = '';
 
-      if (!isFirebaseConfigured) {
-        showDemoMode();
-        return;
-      }
-
       try {
         if (isSignUp) {
           await createUserWithEmailAndPassword(auth, email, password);
@@ -1213,11 +1190,7 @@
     }
 
     async function handleLogout() {
-      if (isFirebaseConfigured) {
-        await signOut(auth);
-      } else {
-        location.reload();
-      }
+      await signOut(auth);
     }
 
     function switchTab(tab) {
@@ -1330,48 +1303,8 @@
     }
 
     // Data functions
-    function loadSampleData() {
-      plans = {
-        '10year': [
-          { id: '1', name: 'キャリア', items: [
-            { id: '1-1', name: '起業する', achieved: false },
-            { id: '1-2', name: '年収1000万達成', achieved: false }
-          ]},
-          { id: '2', name: '健康', items: [
-            { id: '2-1', name: 'フルマラソン完走', achieved: true }
-          ]}
-        ],
-        '5year': [
-          { id: '3', name: 'スキル', items: [
-            { id: '3-1', name: 'プログラミングマスター', achieved: false }
-          ]}
-        ],
-        '1year': [
-          { id: '4', name: '習慣', items: [
-            { id: '4-1', name: '毎日運動', achieved: false },
-            { id: '4-2', name: '読書50冊', achieved: false }
-          ]}
-        ]
-      };
-
-      tasks = [
-        { id: 't1', categoryId: '4-1', name: 'ジムの入会手続き', deadline: getDateString(3), importance: 'gold', progress: 50 },
-        { id: 't2', categoryId: '', name: '確定申告準備', deadline: getDateString(1), importance: 'rainbow', progress: 20 },
-        { id: 't3', categoryId: '3-1', name: 'TypeScript学習', deadline: getDateString(7), importance: 'silver', progress: 30 }
-      ];
-
-      history = [
-        { id: 'h1', type: 'plan', name: 'フルマラソン完走', timestamp: new Date().toISOString() }
-      ];
-
-      renderAll();
-    }
-
     async function loadData() {
-      if (!isFirebaseConfigured || !currentUser) {
-        loadSampleData();
-        return;
-      }
+      if (!currentUser) return;
 
       try {
         // Load plans
@@ -1405,7 +1338,7 @@
         checkDeadlineReminders();
       } catch (error) {
         console.error('Error loading data:', error);
-        loadSampleData();
+        renderAll();
       }
     }
 
@@ -1479,12 +1412,12 @@
         };
         history.unshift(historyItem);
 
-        if (isFirebaseConfigured && currentUser) {
+        if (currentUser) {
           await setDoc(doc(db, 'users', currentUser.uid, 'history', historyItem.id), historyItem);
         }
       }
 
-      if (isFirebaseConfigured && currentUser) {
+      if (currentUser) {
         await updateDoc(doc(db, 'users', currentUser.uid, 'plans', categoryId), { items: category.items });
       }
 
@@ -1500,7 +1433,7 @@
 
       category.items = category.items.filter(i => i.id !== itemId);
 
-      if (isFirebaseConfigured && currentUser) {
+      if (currentUser) {
         await updateDoc(doc(db, 'users', currentUser.uid, 'plans', categoryId), { items: category.items });
       }
 
@@ -1520,7 +1453,7 @@
 
       plans[currentPlanPeriod].push(category);
 
-      if (isFirebaseConfigured && currentUser) {
+      if (currentUser) {
         await setDoc(doc(db, 'users', currentUser.uid, 'plans', category.id), category);
       }
 
@@ -1544,7 +1477,7 @@
 
       category.items.push(item);
 
-      if (isFirebaseConfigured && currentUser) {
+      if (currentUser) {
         await updateDoc(doc(db, 'users', currentUser.uid, 'plans', categoryId), { items: category.items });
       }
 
@@ -1674,7 +1607,7 @@
         const index = tasks.findIndex(t => t.id === id);
         if (index !== -1) {
           tasks[index] = { ...tasks[index], ...taskData };
-          if (isFirebaseConfigured && currentUser) {
+          if (currentUser) {
             await updateDoc(doc(db, 'users', currentUser.uid, 'tasks', id), taskData);
           }
         }
@@ -1682,7 +1615,7 @@
         // Create new
         const newTask = { id: 't' + Date.now(), ...taskData };
         tasks.push(newTask);
-        if (isFirebaseConfigured && currentUser) {
+        if (currentUser) {
           await setDoc(doc(db, 'users', currentUser.uid, 'tasks', newTask.id), newTask);
         }
       }
@@ -1696,7 +1629,7 @@
 
       tasks = tasks.filter(t => t.id !== taskId);
 
-      if (isFirebaseConfigured && currentUser) {
+      if (currentUser) {
         await deleteDoc(doc(db, 'users', currentUser.uid, 'tasks', taskId));
       }
 
@@ -1720,7 +1653,7 @@
       // Remove from tasks
       tasks = tasks.filter(t => t.id !== taskId);
 
-      if (isFirebaseConfigured && currentUser) {
+      if (currentUser) {
         await setDoc(doc(db, 'users', currentUser.uid, 'history', historyItem.id), historyItem);
         await deleteDoc(doc(db, 'users', currentUser.uid, 'tasks', taskId));
       }
